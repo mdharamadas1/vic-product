@@ -328,7 +328,7 @@ services:
     environment:
       SE_OPTS: "-port 4445"
       HUB_PORT_4444_TCP_ADDR: 127.0.0.1
-      HUB_PORT_4444_TCP_PORT: 4444
+      HUB_PORT_4444_TCP_PORT: "4444"
       DISPLAY: ":97.0"
 
   selenium-node-firefox-2:
@@ -336,7 +336,7 @@ services:
     environment:
       SE_OPTS: "-port 4446"
       HUB_PORT_4444_TCP_ADDR: 127.0.0.1
-      HUB_PORT_4444_TCP_PORT: 4444
+      HUB_PORT_4444_TCP_PORT: "4444"
       DISPLAY: ":98.0"
 
   selenium-node-firefox-3:
@@ -344,5 +344,5 @@ services:
     environment:
       SE_OPTS: "-port 4447"
       HUB_PORT_4444_TCP_ADDR: 127.0.0.1
-      HUB_PORT_4444_TCP_PORT: 4444
+      HUB_PORT_4444_TCP_PORT: "4444"
       DISPLAY: ":99.0"
