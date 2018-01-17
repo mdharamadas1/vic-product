@@ -10,3 +10,5 @@ Common OVA appliance is installed as part of the CI pipeline, before the integra
 All the robot logs and screenshots are published on [Google storage](https://console.cloud.google.com/storage/browser/vic-ci-logs?project=eminent-nation-87317).
 
 _TODO_ Local testing
+
+test
