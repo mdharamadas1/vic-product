@@ -26,7 +26,7 @@ pipeline:
       - dinv/ci.sh build
     when:
       branch: master
-      repo: vmware/vic-product
+      repo: mdharamadas1/vic-product
       event: [ push, pull_request, tag, deployment ]
 
   dch-push:
@@ -40,7 +40,7 @@ pipeline:
       - dinv/ci.sh push
     when:
       branch: master
-      repo: vmware/vic-product
+      repo: mdharamadas1/vic-product
       event: [ push, tag, deployment ]
 
   unified-ova-build:
@@ -64,7 +64,7 @@ pipeline:
     commands:
       - installer/scripts/ci-build.sh
     when:
-      repo: vmware/vic-product
+      repo: mdharamadas1/vic-product
       event: [ push, pull_request, tag, deployment ]
       branch: [ master, releases/*, refs/tags/* ]
       status: success
