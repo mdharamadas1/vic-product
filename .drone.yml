@@ -48,12 +48,18 @@ pipeline:
     pull: true
     privileged: true
     environment:
-      HARBOR: $HARBOR
       TERM: xterm
     volumes:
       - /dev:/dev
       - /var/run/docker.sock:/var/run/docker.sock
     commands:
+      - export ADMIRAL=${ADMIRAL}
+      - export BUILD_ADMIRAL_RELEASE=${BUILD_ADMIRAL_RELEASE}
+      - export BUILD_VICENGINE_REVISION=${BUILD_VICENGINE_REVISION}
+      - export DRONE_BUILD_NUMBER=${DRONE_BUILD_NUMBER}
+      - export DRONE_TIMEOUT=${DRONE_TIMEOUT}
+      - export DRONE_TIMEOUT_INACTIVITY=${DRONE_TIMEOUT_INACTIVITY}
+      - export HARBOR=${HARBOR}
       - installer/scripts/ci-build.sh
     when:
       repo: mdharamadas1/vic-product
