@@ -8,7 +8,7 @@ task "removing dev loops and images"
 for img in $(ls build/baseimage/*.img 2>/dev/null); do
   loop=$(losetup -l -O NAME -j $img | tail -n 1);
   rm $img;
-  losetup -d $loop;
+  # losetup -d $loop;
 done
 
 task "removing build artifacts";
