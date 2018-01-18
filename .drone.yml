@@ -68,25 +68,25 @@ pipeline:
       status: success
 
   integration-test-ova-setup:
-    image: harbor.ci.drone.local/library/vic-integration-test:1.37
+    image: gcr.io/eminent-nation-87317/vic-integration-test:1.37
     pull: true
     privileged: true
     environment:
       BIN: bin
       GOPATH: /go
-      PUBLIC_NETWORK: $PUBLIC_NETWORK
       SHELL: /bin/bash
-      TEST_DATASTORE: $TEST_DATASTORE
-      TEST_PASSWORD: $$TEST_PASSWORD
-      TEST_RESOURCE: $$TEST_RESOURCE
-      TEST_URL: $$TEST_URL
-      TEST_USERNAME: $$TEST_USERNAME
     volumes:
       - /tmp
     commands:
+      - export PUBLIC_NETWORK=${PUBLIC_NETWORK}
+      - export TEST_DATASTORE=${TEST_DATASTORE}
+      - export TEST_PASSWORD=${TEST_PASSWORD}
+      - export TEST_RESOURCE=${TEST_RESOURCE}
+      - export TEST_URL=${TEST_URL}
+      - export TEST_USERNAME=${TEST_USERNAME}
       - pybot -d robot-logs/ova-setup-logs -s OVA-Setup tests/common-ova
     when:
-      repo: vmware/vic-product
+      repo: mdharamadas1/vic-product
       event: [ push, pull_request, tag, deployment ]
       branch: [ master, releases/*, refs/tags/* ]
       status: success
