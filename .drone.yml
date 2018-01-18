@@ -76,7 +76,7 @@ pipeline:
     environment:
       BIN: bin
       GOPATH: /go
-      PUBLIC_NETWORK: $$PUBLIC_NETWORK
+      PUBLIC_NETWORK: $PUBLIC_NETWORK
       SHELL: /bin/bash
       TEST_DATASTORE: $$TEST_DATASTORE
       TEST_PASSWORD: $$TEST_PASSWORD
