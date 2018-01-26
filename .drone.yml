@@ -4,7 +4,7 @@
 # $ export DRONE_TOKEN=<token>
 # $ drone sign vmware/vic-product
 # The secrets file is in our local git repo.  Ask mhagen for access.
-# ---
+
 workspace:
   base: /go
   path: src/github.com/vmware/vic-product
@@ -15,33 +15,33 @@ pipeline:
     tags: true
     recursive: false
 
-  # dch-build:
-  #   environment:
-  #     DOCKER_HOST: tcp://127.0.0.1:2375
-  #   image: docker:latest
-  #   pull: true
-  #   commands:
-  #     - docker ps
-  #     - apk add --update bash git
-  #     - dinv/ci.sh build
-  #   when:
-  #     branch: master
-  #     repo: mdharamadas1/vic-product
-  #     event: [ push, pull_request, tag, deployment ]
+  dch-build:
+    environment:
+      DOCKER_HOST: tcp://127.0.0.1:2375
+    image: docker:latest
+    pull: true
+    commands:
+      - docker ps
+      - apk add --update bash git
+      - dinv/ci.sh build
+    when:
+      branch: master
+      repo: vmware/vic-product
+      event: [ push, pull_request, tag, deployment ]
 
-  # dch-push:
-  #   environment:
-  #     DOCKER_HOST: tcp://127.0.0.1:2375
-  #   image: docker:latest
-  #   pull: true
-  #   commands:
-  #     - docker ps
-  #     - apk add --update bash git
-  #     - dinv/ci.sh push
-  #   when:
-  #     branch: master
-  #     repo: mdharamadas1/vic-product
-  #     event: [ push, tag, deployment ]
+  dch-push:
+    environment:
+     DOCKER_HOST: tcp://127.0.0.1:2375
+    image: docker:latest
+    pull: true
+    commands:
+     - docker ps
+     - apk add --update bash git
+     - dinv/ci.sh push
+    when:
+     branch: master
+     repo: vmware/vic-product
+     event: [ push, tag, deployment ]
 
   unified-ova-build:
     image: gcr.io/eminent-nation-87317/vic-product-build:latest
@@ -53,16 +53,10 @@ pipeline:
       - /dev:/dev
       - /var/run/docker.sock:/var/run/docker.sock
     commands:
-      - export ADMIRAL=${ADMIRAL}
-      - export BUILD_ADMIRAL_RELEASE=${BUILD_ADMIRAL_RELEASE}
-      - export BUILD_VICENGINE_REVISION=${BUILD_VICENGINE_REVISION}
-      - export DRONE_BUILD_NUMBER=${DRONE_BUILD_NUMBER}
-      - export DRONE_TIMEOUT=${DRONE_TIMEOUT}
-      - export DRONE_TIMEOUT_INACTIVITY=${DRONE_TIMEOUT_INACTIVITY}
-      - export HARBOR=${HARBOR}
-      - installer/scripts/ci-build.sh
+      - . installer/build/ci-vars.sh
+      - installer/build/ci-build.sh
     when:
-      repo: mdharamadas1/vic-product
+      repo: vmware/vic-product
       event: [ push, pull_request, tag, deployment ]
       branch: [ master, releases/*, refs/tags/* ]
       status: success
@@ -78,39 +72,25 @@ pipeline:
     volumes:
       - /tmp
     commands:
-      - export PUBLIC_NETWORK=${PUBLIC_NETWORK}
-      - export TEST_DATASTORE=${TEST_DATASTORE}
-      - export TEST_PASSWORD=${TEST_PASSWORD}
-      - export TEST_RESOURCE=${TEST_RESOURCE}
-      - export TEST_URL=${TEST_URL}
-      - export TEST_USERNAME=${TEST_USERNAME}
+      - . installer/build/ci-vars.sh
       - pybot -d robot-logs/ova-setup-logs -s OVA-Setup tests/common-ova
     when:
-      repo: mdharamadas1/vic-product
+      repo: vmware/vic-product
       event: [ push, pull_request, tag, deployment ]
       branch: [ master, releases/*, refs/tags/* ]
       status: success
 
   integration-test:
-    image: harbor.ci.drone.local/library/vic-integration-test:1.37
+    image: gcr.io/eminent-nation-87317/vic-integration-test:1.37
     pull: true
     environment:
       BIN: bin
       GOPATH: /go
-      GS_CLIENT_EMAIL: $$GS_CLIENT_EMAIL
-      GS_PROJECT_ID: $$GS_PROJECT_ID
-      GS_PRIVATE_KEY: $$GS_PRIVATE_KEY
-      PUBLIC_NETWORK: $$PUBLIC_NETWORK
       SHELL: /bin/bash
-      TEST_DATASTORE: $$TEST_DATASTORE
-      TEST_PASSWORD: $$TEST_PASSWORD
-      TEST_RESOURCE: $$TEST_RESOURCE
-      TEST_URL: $$TEST_URL
-      TEST_USERNAME: $$TEST_USERNAME
-      VCH_TIMEOUT: $$VCH_TIMEOUT
     volumes:
       - /tmp
     commands:
+      - . installer/build/ci-vars.sh
       - tests/robot-run.sh
     when:
       repo: vmware/vic-product
@@ -119,21 +99,16 @@ pipeline:
       status: success
 
   integration-test-ova-cleanup:
-    image: harbor.ci.drone.local/library/vic-integration-test:1.37
+    image: gcr.io/eminent-nation-87317/vic-integration-test:1.37
     pull: true
     environment:
       BIN: bin
       GOPATH: /go
-      PUBLIC_NETWORK: $$PUBLIC_NETWORK
       SHELL: /bin/bash
-      TEST_DATASTORE: $$TEST_DATASTORE
-      TEST_PASSWORD: $$TEST_PASSWORD
-      TEST_RESOURCE: $$TEST_RESOURCE
-      TEST_URL: $$TEST_URL
-      TEST_USERNAME: $$TEST_USERNAME
     volumes:
       - /tmp
     commands:
+      - . installer/build/ci-vars.sh
       - pybot -d robot-logs/ova-cleanup-logs -s OVA-Cleanup tests/common-ova
     when:
       repo: vmware/vic-product
@@ -142,7 +117,7 @@ pipeline:
       status: [ success, failure ]
 
   bundle-robot-logs:
-    image: harbor.ci.drone.local/library/vic-integration-test:1.37
+    image: gcr.io/eminent-nation-87317/vic-integration-test:1.37
     pull: true
     environment:
       SHELL: /bin/bash
