@@ -64,23 +64,23 @@ pipeline:
      event: [ push, tag, deployment ]
       status: success
 
-#  unified-ova-build:
-#    image: gcr.io/eminent-nation-87317/vic-product-build:latest
-#    pull: true
-#    privileged: true
-#    environment:
-#      TERM: xterm
-#    secrets: [ admiral, build_admiral_release, build_vicengine_release, harbor, vic_machine_server, vicengine ]
-#    volumes:
-#      - /dev:/dev
-#      - /var/run/docker.sock:/var/run/docker.sock
-#    commands:
-#      - installer/build/ci-build.sh
-#    when:
-#      repo: mdharamadas1/vic-product
-#      event: [ push, pull_request, tag, deployment ]
-#      branch: [ master, releases/*, refs/tags/* ]
-#      status: success
+  unified-ova-build:
+    image: gcr.io/eminent-nation-87317/vic-product-build:latest
+    pull: true
+    privileged: true
+    environment:
+      TERM: xterm
+    secrets: [ admiral, build_admiral_release, build_vicengine_release, harbor, vic_machine_server, vicengine ]
+    volumes:
+      - /dev:/dev
+      - /var/run/docker.sock:/var/run/docker.sock
+    commands:
+      - installer/build/ci-build.sh
+    when:
+      repo: mdharamadas1/vic-product
+      event: [ push, pull_request, tag, deployment ]
+      branch: [ master, releases/*, refs/tags/* ]
+      status: success
 
   integration-test-ova-setup:
     image: gcr.io/eminent-nation-87317/vic-integration-test:1.37
