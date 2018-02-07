@@ -64,23 +64,23 @@ pipeline:
      event: [ push, tag, deployment ]
       status: success
 
-  unified-ova-build:
-    image: gcr.io/eminent-nation-87317/vic-product-build:latest
-    pull: true
-    privileged: true
-    environment:
-      TERM: xterm
-    secrets: [ ADMIRAL, BUILD_ADMIRAL_RELEASE, BUILD_VICENGINE_REVISION, HARBOR, VIC_MACHINE_SERVER, VICENGINE ]
-    volumes:
-      - /dev:/dev
-      - /var/run/docker.sock:/var/run/docker.sock
-    commands:
-      - installer/build/ci-build.sh
-    when:
-      repo: mdharamadas1/vic-product
-      event: [ push, pull_request, tag, deployment ]
-      branch: [ master, releases/*, refs/tags/* ]
-      status: success
+#  unified-ova-build:
+#    image: gcr.io/eminent-nation-87317/vic-product-build:latest
+#    pull: true
+#    privileged: true
+#    environment:
+#      TERM: xterm
+#    secrets: [ admiral, build_admiral_release, build_vicengine_release, harbor, vic_machine_server, vicengine ]
+#    volumes:
+#      - /dev:/dev
+#      - /var/run/docker.sock:/var/run/docker.sock
+#    commands:
+#      - installer/build/ci-build.sh
+#    when:
+#      repo: mdharamadas1/vic-product
+#      event: [ push, pull_request, tag, deployment ]
+#      branch: [ master, releases/*, refs/tags/* ]
+#      status: success
 
   integration-test-ova-setup:
     image: gcr.io/eminent-nation-87317/vic-integration-test:1.37
@@ -90,7 +90,7 @@ pipeline:
       BIN: bin
       GOPATH: /go
       SHELL: /bin/bash
-    secrets: [ PUBLIC_NETWORK, TEST_DATASTORE, TEST_PASSWORD, TEST_RESOURCE, TEST_URL, TEST_USERNAME ]
+    secrets: [ public_network, test_datastore, test_password, test_resource, test_url, test_username ]
     volumes:
       - /tmp
     commands:
@@ -109,7 +109,7 @@ pipeline:
       BIN: bin
       GOPATH: /go
       SHELL: /bin/bash
-    secrets: [ PUBLIC_NETWORK, TEST_DATASTORE, TEST_PASSWORD, TEST_RESOURCE, TEST_URL, TEST_USERNAME, VCH_TIMEOUT ]
+    secrets: [ public_network, test_datastore, test_password, test_resource, test_url, test_username, vch_timeout ]
     volumes:
       - /tmp
     commands:
@@ -127,7 +127,7 @@ pipeline:
       BIN: bin
       GOPATH: /go
       SHELL: /bin/bash
-    secrets: [ PUBLIC_NETWORK, TEST_DATASTORE, TEST_PASSWORD, TEST_RESOURCE, TEST_URL, TEST_USERNAME ]
+    secrets: [ public_network, test_datastore, test_password, test_resource, test_url, test_username ]
     volumes:
       - /tmp
     commands:
