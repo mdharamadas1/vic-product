@@ -190,6 +190,8 @@ pipeline:
     acl:
       - 'allUsers:READER'
     cache_control: 'public,max-age=3600'
+    secrets:
+      - google_key
     when:
       repo: mdharamadas1/vic-product
       event: [push, pull_request, tag, deployment]
