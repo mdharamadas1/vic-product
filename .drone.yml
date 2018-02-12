@@ -10,25 +10,26 @@ pipeline:
     image: plugins/git
     tags: true
     recursive: false
+
   clone-pr:
-    image: harbor.ci.drone.local/library/git-clone:1.1
+    image: 'harbor.ci.drone.local/library/git-clone:1.1'
     pull: true
-    environment:
-      DRONE_PULL_REQUEST:  ${DRONE_PULL_REQUEST}
+    secrets:
+      - drone_pull_request
     when:
-      event: [ pull_request ]
+      event: [pull_request]
 
   display-status:
-    image: harbor.ci.drone.local/library/vic-integration-test:1.42
+    image: 'harbor.ci.drone.local/library/vic-integration-test:1.42'
     pull: true
     environment:
       BIN: bin
       SHELL: /bin/bash
-      COMMIT: ${DRONE_COMMIT}
     commands:
-      - echo "Expecting ${DRONE_COMMIT}"
-      - git log -5
-      - git log -1 --pretty=oneline | grep "^${DRONE_COMMIT}" > /dev/null && echo 'Build matches' || (git log -1 --pretty=oneline | grep "Merge ${DRONE_COMMIT}" > /dev/null && echo 'Build is of a merge commit' || (echo 'Build does not match!' && exit 1))
+      - 'export COMMIT=${DRONE_COMMIT}'
+      - 'echo "Expecting ${DRONE_COMMIT}"'
+      - 'git log -5'
+      - 'git log -1 --pretty=oneline | grep "^${DRONE_COMMIT}" > /dev/null && echo ''Build matches'' || (git log -1 --pretty=oneline | grep "Merge ${DRONE_COMMIT}" > /dev/null && echo ''Build is of a merge commit'' || (echo ''Build does not match!'' && exit 1))'
 
 #  dch-build:
 #    environment:
