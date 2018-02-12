@@ -1,14 +1,11 @@
-# After any change to this file you MUST re-sign and checkin the .drone.yml.sig
-# When you are ready to submit a pull request, you must regenerate .drone.yml.sig for the vmware/vic-product repo:
-# $ export DRONE_SERVER=https://ci.vcna.io
-# $ export DRONE_TOKEN=<token>
-# $ drone sign vmware/vic-product
-# The secrets file is in our local git repo.  Ask mhagen for access.
-# ---
+
 workspace:
+
   base: /go
   path: src/github.com/vmware/vic-product
+
 pipeline:
+
   clone:
     image: plugins/git
     tags: true
@@ -46,7 +43,7 @@ pipeline:
 #      branch: master
 #      repo: mdharamadas1/vic-product
 #      event: [ push, pull_request, tag, deployment ]
-      status: success
+#      status: success
 
   dch-push:
     environment:
@@ -96,6 +93,7 @@ pipeline:
       GOPATH: /go
       SHELL: /bin/bash
     secrets:
+      - bridge_network
       - public_network
       - test_datastore
       - test_password
@@ -121,6 +119,7 @@ pipeline:
       GOPATH: /go
       SHELL: /bin/bash
     secrets:
+      - bridge_network
       - public_network
       - test_datastore
       - test_password
@@ -146,6 +145,7 @@ pipeline:
       GOPATH: /go
       SHELL: /bin/bash
     secrets:
+      - bridge_network
       - public_network
       - test_datastore
       - test_password
