@@ -11,16 +11,16 @@ pipeline:
     tags: true
     recursive: false
 
-  clone-pr:
-    image: 'harbor.ci.drone.local/library/git-clone:1.1'
-    pull: true
-    secrets:
-      - drone_pull_request
-    when:
-      event: [pull_request]
+#  clone-pr:
+#    image: 'harbor.ci.drone.local/library/git-clone:1.1'
+#    pull: true
+#    secrets:
+#      - drone_pull_request
+#    when:
+#      event: [pull_request]
 
   display-status:
-    image: 'harbor.ci.drone.local/library/vic-integration-test:1.42'
+    image: 'gcr.io/eminent-nation-87317/vic-integration-test:1.42'
     pull: true
     environment:
       BIN: bin
