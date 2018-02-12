@@ -18,18 +18,18 @@ pipeline:
 #      - drone_pull_request
 #    when:
 #      event: [pull_request]
-
-  display-status:
-    image: 'gcr.io/eminent-nation-87317/vic-integration-test:1.42'
-    pull: true
-    environment:
-      BIN: bin
-      SHELL: /bin/bash
-    commands:
-      - 'export COMMIT=${DRONE_COMMIT}'
-      - 'echo "Expecting ${DRONE_COMMIT}"'
-      - 'git log -5'
-      - 'git log -1 --pretty=oneline | grep "^${DRONE_COMMIT}" > /dev/null && echo ''Build matches'' || (git log -1 --pretty=oneline | grep "Merge ${DRONE_COMMIT}" > /dev/null && echo ''Build is of a merge commit'' || (echo ''Build does not match!'' && exit 1))'
+#
+#  display-status:
+#    image: 'gcr.io/eminent-nation-87317/vic-integration-test:1.42'
+#    pull: true
+#    environment:
+#      BIN: bin
+#      SHELL: /bin/bash
+#    commands:
+#      - 'export COMMIT=${DRONE_COMMIT}'
+#      - 'echo "Expecting ${DRONE_COMMIT}"'
+#      - 'git log -5'
+#      - 'git log -1 --pretty=oneline | grep "^${DRONE_COMMIT}" > /dev/null && echo ''Build matches'' || (git log -1 --pretty=oneline | grep "Merge ${DRONE_COMMIT}" > /dev/null && echo ''Build is of a merge commit'' || (echo ''Build does not match!'' && exit 1))'
 
 #  dch-build:
 #    environment:
