@@ -1,30 +1,24 @@
+#!/usr/bin/env bash
 # Copyright 2017 VMware, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#   http://www.apache.org/licenses/LICENSE-2.0
+#    http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
-# limitations under the License
+# limitations under the License.
+set -euf -o pipefail
 
-*** Settings ***
-Documentation  Common OVA Teardown
-Resource  ../resources/Util.robot
-Test Timeout  15 minutes
-Suite Setup  Global Environment Setup
+log_dir="/storage/log/vic-machine-server"
 
-*** Keywords ***
+mkdir -p ${log_dir}
+chown -R "${APPLIANCE_SERVICE_UID}":"${APPLIANCE_SERVICE_UID}" ${log_dir}
 
+iptables -w -A INPUT -j ACCEPT -p tcp --dport "${VIC_MACHINE_SERVER_PORT}"
 
-*** Test Cases ***
-Copy OVA Support Bundle
-    Set Test OVA IP If Available
-    Copy Support Bundle  %{OVA_IP}
-
-Teardown Common OVA
-    Cleanup VIC Product OVA  %{OVA_NAME}
+echo "Finished vic-machine-server config"

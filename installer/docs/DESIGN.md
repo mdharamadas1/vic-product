@@ -36,6 +36,12 @@ the appliance](BUILD.md) for testing during the development process.
 
 _TODO_ Add reference service to repo
 
+- A component SHOULD be delivered as a Docker container or Docker Compose application with Compose
+  file version 3.3 or less
+
+  If the version of Compose file is less than 3.3 and causes integration issues, the component team
+  MUST update the Compose file to be compatible
+
 - Configuration of a service SHOULD take place in `ExecStartPre` statement(s) of the component unit
 
   This simplifies the service's units, but means that the configuration step needs to be designed
@@ -145,7 +151,44 @@ check before operating on the data.
   the configuration version number be useful in checking compatibility during upgrade.
 
 
-## Component Inclusion
+## Security
+
+Each component is responsible for its application security posture. The appliance team will work
+with the component team to ensure that the component is run in accordance with security best
+practices.
+
+Components SHOULD run as a Docker container unless there is strong justification for a different
+inclusion method that is approved by the appliance team.
+All processes on the appliance should run with the least privilege required.
+
+The appliance provides a TLS certificate in `/storage/data/certs/`. The system generates a
+self-signed TLS certificate or places a user specified TLS certificate in this directory. All
+components should use this certificate for user facing connections and can access it by mounting
+this directory as a read only volume to the component container
+(`-v /storage/data/certs:/path/on/container:ro`)
+
+`/storage/data/certs/` contains:
+```
+- cert_gen_type    # self-signed or custom
+- ca.srl           # CA serial
+- ca.crt           # CA certificate
+- ca.key           # CA private key
+- server.csr       # server CSR
+- server.crt       # server certificate
+- server.key       # server private key
+- extfile.cnf      # extfile for SAN
+```
+
+### Requirements
+
+- User ID `10000` MUST be used as the unprivileged user for components
+
+- All shell scripts MUST be checked using ShellCheck and resolve all errors prior to inclusion
+
+  https://github.com/koalaman/shellcheck
+
+
+## Component Inclusion and Continuous Integration
 
 Components are pulled in by the build to create the appliance. Components may depend on additional
 artifacts. These artifacts can be pulled into the build and included in the appliance, but must
@@ -172,29 +215,42 @@ teams should invest in automated testing and as part of the component team's CI/
 the appliance CI/CD) test the candidate component before pushing that component to be included in
 the current appliance build.
 
-### Security
+The appliance will be built by a CI pipeline that is triggered when a new build of a component is
+available. Development builds will pull in the latest version of all components available at the
+time of the build.
 
-Each component is responsible for its application security posture. The appliance team will work
-with the component team to ensure that the component is run in accordance with security best
-practices. 
+### Component Responsibilities
 
-Components SHOULD run as a Docker container unless there is strong justification for a different
-inclusion method that is approved by the appliance team.
-All processes on the appliance should run with the least privilege required.
+- A component MUST maintain a current copy of
+  [VIC Appliance Component Integration Documentation](INTEGRATION.md)
 
-TODO Add how to deprivilege Docker container
+  This document defines the interface between the VIC appliance and the component.
+
+- The component team MUST monitor each triggered `vic-product` downstream build for failures. If the
+  build failure is suspected to be caused by changes to the component, triage the failure according
+  to the [Triage Process](#triage-process)
 
 ### Requirements
 
-- In the case of a failing build, the component team that triggered the failing appliance build MUST
-  take leadership of returning the build to a normal state and assign that effort a high priority
+- All components MUST trigger the CI pipeline when a new version of the component is available
 
-- In the case of a failing build, the component team in charge MUST alert the appliance team and
-  other stakeholders through Slack that work to fix the build is in progress. If an extended
-  breakage is expected, the team MUST give regular progress updates to stakeholders (at least once
-  per day).
+  The recommended way to trigger the build is by using Drone downstream project triggers.
 
-- The component team MUST document and provide the appliance team with acceptance tests for features
+- A component SHOULD have a staging branch and staging artifact upload workflow
+  integrated with the CI system to test integration with the appliance before making
+  component artifacts available for inclusion in the appliance development or release build
+
+  This architecture will prevent the main appliance build from being blocked by a failing component
+  build. The component team should work with the appliance team to integrate this workflow with the
+  respective CI systems.
+
+- The component team MUST ensure that builds passed to the VIC appliance CI pass product integration
+  tests locally before triggering the `vic-product` downstream build
+
+- The component MUST have a release version tagging and artifact upload workflow. Released versions
+  MUST be retained so that builds can be rebuilt using previously released versions.
+
+- The component team SHOULD document and provide the appliance team with acceptance tests for features
   that need to be tested
 
   The appliance team performs automated and manual testing for release acceptance. The component
@@ -208,12 +264,21 @@ TODO Add how to deprivilege Docker container
   performed before handing off an artifact to the appliance team and end to end testing should be
   performed on the resulting appliance.
 
-- User ID `10000` MUST be used as the unprivileged user for components
+### Triage Process
 
-- All shell scripts MUST be checked using ShellCheck and errors all errors resolved prior to
-  inclusion
+- Message `#vic-product-standup` channel to say that triage is in progress
+- Download build logs from the failed build
+- Examine logs and identify failure
+- Message `#vic-product-standup` with identified failure and solution
+- If failure is root caused by another component, open a Github issue in the correct repo
+- Root cause component team will proceed with [Resolution Process](#resolution-process)
 
-  https://github.com/koalaman/shellcheck
+### Resolution Process
+
+- Fix root cause or update integration test(s) as applicable
+- Add integration test(s) in `vic-product` repo or component repo as applicable
+- Monitor the triggered downstream build containing the fix to confirm resolution
+- Message `#vic-product-standup` that build failure is resolved
 
 
 ## Filesystem Layout
@@ -256,24 +321,6 @@ Component startup scripts:
 - /etc/vmware/harbor
 ```
 
-The appliance provides a TLS certificate in `/storage/data/certs/`. The system generates a
-self-signed TLS certificate or places a user specified TLS certificate in this directory. All
-components should use this certificate for user facing connections and can access it by mounting
-this directory as a read only volume to the component container
-(`-v /storage/data/certs:/path/on/container:ro`)
-
-`/storage/data/certs/` contains:
-```
-- ca.crt
-- ca.key
-- ca.srl
-- cert_gen_type
-- extfile.cnf
-- server.cert.pem
-- server.csr
-- server.key.pem # PKCS1 format private key
-```
-
 
 ## Logging
 
@@ -305,25 +352,6 @@ In the future the appliance will provide a remote logging capability.
   This allows for the appliance to manage data by putting it on separate disks if necessary.
   Component developers should communicate with the appliance team the expected scale of various
   categories of data stored by the component to ensure proper disk sizing.
-
-
-## Continuous Integration (CI)
-
-The appliance will be built by a CI pipeline that is triggered when a new build of a component is
-available. Development builds will pull in the latest version of all components available at the
-time of the build.
-
-- All components MUST trigger the CI pipeline when a new version of the component is available
-
-  The recommended way to trigger the build is by using Drone downstream project triggers.
-
-- It is recommended for components to have a staging branch and staging artifact upload workflow
-  integrated with the CI system to test integration with the appliance before making available
-  component artifacts for inclusion in the appliance development or release build
-
-  This architecture will prevent the main appliance build from being blocked by a failing component
-  build. The component team should work with the appliance team to integrate this workflow with the
-  respective CI systems.
 
 
 ## Appliance Upgrade
@@ -405,3 +433,7 @@ the current version of the appliance perform this action through a UI.
 ## Appliance Rollback
 
 Rollback is not currently implemented, but will be considered in the future.
+
+## Additional Information
+
+- [VIC Appliance Component Integration Documentation](https://github.com/vmware/vic-product/blob/master/installer/docs/INTEGRATION.md)

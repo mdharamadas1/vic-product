@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-set -euf -o pipefail
+set -uf -o pipefail
 
 TIMESTAMP=$(date +"%Y-%m-%d-%H-%M-%S")
 DIRNAME="vic_appliance_logs_$TIMESTAMP"
@@ -69,10 +69,16 @@ function commandToCompressed {
 # getLog copies files with suffix to component directory in $TMPDIR
 function getLog {
   local FILES
+  set +e
   FILES=$(find "$1" -name "$2")
+  set -e
   local DIR
   DIR=$(basename "$1")
 
+  if [ -z "$FILES" ]; then
+    echo "No logs found for $1"
+    return
+  fi
   for file in $FILES; do
     commandToCompressed "cat $file" "$(basename "$file")" "$DIR"
   done
@@ -101,7 +107,7 @@ function getPrivateFiles {
   echo "Including private values in log bundle"
 
   commandToFile "openssl x509 -in /storage/data/certs/ca.crt -text -noout" "ca.crt" "certs"
-  commandToFile "openssl x509 -in /storage/data/certs/server.cert.pem -text -noout" "server.cert.pem" "certs"
+  commandToFile "openssl x509 -in /storage/data/certs/server.crt -text -noout" "server.crt" "certs"
   commandToFile "cat /storage/data/certs/cert_gen_type" "cert_gen_type" "certs"
   commandToFile "cat /storage/data/certs/extfile.cnf" "extfile.cnf" "certs"
 
@@ -121,6 +127,7 @@ function getPrivateFiles {
 function getDiagInfo {
   # Appliance
   commandToFile "hostnamectl" "hostnamectl" "appliance"
+  commandToFile "timedatectl" "timedatectl" "appliance"
   commandToFile "ip address show" "ip_addr" "appliance"
   commandToFile "ovfenv" "ovfenv" "appliance"
   commandToFile "cat /etc/vmware/environment" "environment" "appliance"
@@ -135,13 +142,14 @@ function getDiagInfo {
   commandToFile "df -h" "df" "appliance"
   commandToFile "docker ps -a" "docker_ps" "appliance"
   commandToFile "docker images" "docker_images" "appliance"
+  commandToCompressed "journalctl -u vic-appliance-tls --no-pager" "journal_vic-appliance-tls" "appliance"
 
   # Services
   commandToCompressed "journalctl -u admiral --no-pager" "journal_admiral" "admiral"
   commandToCompressed "journalctl -u harbor --no-pager" "journal_harbor" "harbor"
   commandToCompressed "journalctl -u fileserver --no-pager" "journal_fileserver" "appliance"
   commandToCompressed "journalctl -u get_token --no-pager" "journal_get_token" "psc"
-  commandToCompressed "journalctl -u vic_machine_server --no-pager" "journal_vic_machine_server" "vic-machine-server"
+  commandToCompressed "journalctl -u vic-machine-server --no-pager" "journal_vic-machine-server" "vic-machine-server"
 
   # PSC
   commandToFile "cat /storage/data/admiral/configs/psc-config.properties" "admiral_data_psc-config" "psc"
@@ -159,10 +167,16 @@ function getDiagInfo {
   # Harbor
   commandToFile "cat /storage/data/harbor/config/config.json" "config.json" "harbor"
   local FILES
+  set +e
   FILES=$(find "/etc/vmware/harbor" -maxdepth 1 -name "*.yml")
-  for file in $FILES; do
-    commandToFile "cat $file" "$(basename "$file")" "harbor"
-  done
+  set -e
+  if [ -z "$FILES" ]; then
+    echo "Failed to find Harbor yml files"
+  else
+    for file in $FILES; do
+      commandToFile "cat $file" "$(basename "$file")" "harbor"
+    done
+  fi
 
   # Gets the latest log for each component. Additional rotated logs must be retrieved manually.
   getLog "/storage/log/admiral" "*.log"
