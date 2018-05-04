@@ -75,7 +75,7 @@ Setup CA Cert for Harbor Registry
     Run command and Return output  ls /etc/docker/certs.d/${ova-ip}
 
 Secret Docker Login To Harbor Registry
-    [Tags]  secret
+    # [Tags]  secret
     [Arguments]  ${registry_ip}  ${docker}=${DEFAULT_LOCAL_DOCKER}  ${docker_endpoint}=-H ${DEFAULT_LOCAL_DOCKER_ENDPOINT}
     ${output}=  Run command and Return output  ${docker} ${docker_endpoint} login ${registry_ip} --username %{TEST_USERNAME} --password %{TEST_PASSWORD}
     [Return]  ${output}
