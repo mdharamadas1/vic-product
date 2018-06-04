@@ -389,7 +389,7 @@ Execute Upgrade Script
 Deploy OVA And Install UI Plugin And Run Regression Tests
     # Deploy OVA and then install UI plugin
     # run regression tests on UI wizard and docker commands on VCH created using UI
-    [Arguments]  ${test-name}  ${ova-file}  ${datastore}  ${bridge-network}  ${public-network}  ${ops-user}  ${ops-pwd}  ${tree-node}=1
+    [Arguments]  ${test-name}  ${ova-file}  ${datastore}  ${bridge-network}  ${public-network}  ${ops-user}  ${ops-pwd}  ${host-ip}=${EMPTY}  ${tree-node}=1
     Log To Console  \nStarting test ${test-name}...
     Set Environment Variable  OVA_NAME  OVA-${test-name}
     Set Global Variable  ${OVA_USERNAME_ROOT}  root
@@ -402,7 +402,7 @@ Deploy OVA And Install UI Plugin And Run Regression Tests
     Download VIC And Install UI Plugin  %{OVA_IP}
     # create vch using UI
     # retry UI steps if failed
-    Wait Until Keyword Succeeds  3x  1m  Create VCH using UI And Set Docker Parameters  ${test-name}  ${datastore}  ${bridge-network}  ${public-network}  ${ops-user}  ${ops-pwd}  ${tree-node}
+    Wait Until Keyword Succeeds  3x  1m  Create VCH using UI And Set Docker Parameters  ${test-name}  ${datastore}  ${bridge-network}  ${public-network}  ${ops-user}  ${ops-pwd}  ${host-ip}  ${tree-node}
     # run vch regression tests
     Run Docker Regression Tests For VCH
 

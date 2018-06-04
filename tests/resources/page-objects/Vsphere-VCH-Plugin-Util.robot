@@ -154,10 +154,22 @@ Set Docker Host Parameters
     Run Keyword If  ${port} == 2376  Set Test Variable  ${VCH-PARAMS}  -H ${docker-host} --tls
     Run Keyword If  ${port} == 2375  Set Test Variable  ${VCH-PARAMS}  -H ${docker-host}
 
+Select Compute Resource By Host
+    [Arguments]  ${host-ip}
+    :FOR  ${IDX}  IN RANGE  1  5
+    \   ${host-link}=  Set Variable  css=.clr-treenode-children clr-tree-node:nth-of-type(${IDX}) .cc-resource
+    \   ${exists}=  Run Keyword And Return Status  Element Should Be Visible  ${host-link}
+    \   Exit For Loop If  '${exists}' == 'False'
+    \   ${text}=  Get Text  ${host-link}
+    \   ${status}=  Run Keyword And Return Status  Should Contain  ${text}  ${host-ip}
+    \   Run Keyword If  ${status}  Click Button  ${host-link}
+    \   Exit For Loop If  ${status}
+    Log  ${text}
+
 Create VCH using UI And Set Docker Parameters
     # navigate to the wizard and create a VCH
     # set docker parameters for created VCH
-    [Arguments]  ${test-name}  ${datastore}  ${bridge-network}  ${public-network}  ${ops-user}  ${ops-pwd}  ${tree-node}=1
+    [Arguments]  ${test-name}  ${datastore}  ${bridge-network}  ${public-network}  ${ops-user}  ${ops-pwd}  ${host-ip}  ${tree-node}=1
     Open Firefox Browser
     Navigate To VC UI Home Page
     Login On Single Sign-On Page
@@ -165,16 +177,15 @@ Create VCH using UI And Set Docker Parameters
     Navigate To VCH Creation Wizard
     Navigate To VCH Tab
     Click New Virtual Container Host Button
-
     #general
     ${name}=  Evaluate  'VCH-${test-name}-' + str(random.randint(1000,9999)) + str(time.clock())  modules=random,time
     Input VCH Name  ${name}
     Click Next Button
     # compute capacity
     Log To Console  Selecting compute resource...
-    # if cluster is present
     Wait Until Element Is Visible And Enabled  css=.clr-treenode-children clr-tree-node:nth-of-type(${tree-node}) .cc-resource
-    Click Button  css=.clr-treenode-children clr-tree-node:nth-of-type(${tree-node}) .cc-resource
+    Run Keyword Unless  '${host-ip}' == '${EMPTY}'  Select Compute Resource By Host  ${host-ip}
+    Run Keyword If  '${host-ip}' == '${EMPTY}'  Click Button  css=.clr-treenode-children clr-tree-node:nth-of-type(${tree-node}) .cc-resource
     Click Next Button
     # storage capacity
     Select Image Datastore  ${datastore}
